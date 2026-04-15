@@ -328,7 +328,19 @@ class Orchestrator:
 
         await self._ensure_docker()
 
-        directives = parse_directives(dispatch.text, self._providers._known_model_ids)
+        # _known_model_ids only covers Claude + Gemini IDs (refreshed on Gemini
+        # cache updates).  Codex model IDs live in a separate dynamic cache, so
+        # merge them in here before parsing so that directives like @gpt-5.4
+        # route to the Codex provider instead of falling through to the default.
+        known_ids = self._providers._known_model_ids
+        codex_cache = (
+            self._providers._codex_cache_fn()
+            if self._providers._codex_cache_fn
+            else None
+        )
+        if codex_cache is not None:
+            known_ids = known_ids | frozenset(m.id for m in codex_cache.models)
+        directives = parse_directives(dispatch.text, known_ids)
 
         # Check if a leading @directive matches a named session
         if directives.raw_directives:
