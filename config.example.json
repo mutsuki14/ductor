@@ -142,6 +142,7 @@
 
     "scene": {
         "seen_reaction": false,
+        "status_reaction": false,
         "technical_footer": false
     },
 

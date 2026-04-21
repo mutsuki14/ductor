@@ -1298,7 +1298,9 @@ class TelegramBot:
         thread_id = get_thread_id(message)
         logger.debug("Message text=%s", text[:80])
 
-        if self._config.scene.seen_reaction:
+        # #63: status_reaction (stage-based) wins over seen_reaction (one-shot).
+        # Both enabled would fight over the same Telegram emoji slot.
+        if self._config.scene.seen_reaction and not self._config.scene.status_reaction:
             await self._set_seen_reaction(message)
 
         if self._config.streaming.enabled:

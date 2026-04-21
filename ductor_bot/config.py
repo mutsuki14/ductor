@@ -262,6 +262,11 @@ class SceneConfig(BaseModel):
     """Settings for scene indicators and technical footer."""
 
     seen_reaction: bool = False
+    # #63: when True, the user's message gets a stage-based reaction that
+    # updates as the agent works (thinking/tool/system) and clears on
+    # completion. Overrides ``seen_reaction`` so they do not fight over
+    # the same emoji slot. Default False preserves pre-existing behaviour.
+    status_reaction: bool = False
     technical_footer: bool = False
 
 
