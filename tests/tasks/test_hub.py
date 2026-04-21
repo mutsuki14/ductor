@@ -164,6 +164,34 @@ class TestRunAndDeliver:
 
         await hub.shutdown()
 
+    @pytest.mark.parametrize("returncode", [143, 137, -15, -9])
+    async def test_sigterm_exit_is_classified_as_cancelled_not_failed(
+        self, registry: TaskRegistry, tmp_path: Path, returncode: int
+    ) -> None:
+        """Exit 143/137 (= 128 + SIGTERM/SIGKILL) is user /stop, not a CLI error."""
+        cli = _make_cli_service()
+        cli.execute.return_value.is_error = True
+        cli.execute.return_value.result = ""
+        cli.execute.return_value.returncode = returncode
+
+        delivered: list[TaskResult] = []
+        hub = TaskHub(
+            registry,
+            MagicMock(workspace=tmp_path),
+            cli_service=cli,
+            config=_make_config(),
+        )
+        hub.set_result_handler("main", AsyncMock(side_effect=delivered.append))
+
+        hub.submit(_submit())
+        await asyncio.sleep(0.1)
+
+        assert len(delivered) == 1
+        assert delivered[0].status == "cancelled"
+        assert delivered[0].error == ""
+
+        await hub.shutdown()
+
 
 class TestCancel:
     async def test_cancel_running_task(self, registry: TaskRegistry, tmp_path: Path) -> None:
