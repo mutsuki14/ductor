@@ -296,12 +296,13 @@ class MatrixBot:
         self,
         room: MatrixRoom | object,
         event: RoomMessageText | object,
-    ) -> tuple[str, str, int] | None:
+    ) -> tuple[str, str, str, int] | None:
         """Validate + dedupe + filter an incoming Matrix text event.
 
-        Returns ``(text, room_id, chat_id)`` when the event should be
-        dispatched, or ``None`` to skip (not ready, wrong type, unauthorized,
-        duplicate sync replay, empty body, or mention-only filter rejected).
+        Returns ``(text, room_id, event_id, chat_id)`` when the event should
+        be dispatched, or ``None`` to skip (not ready, wrong type,
+        unauthorized, duplicate sync replay, empty body, or mention-only
+        filter rejected).
         """
         from nio import MatrixRoom, RoomMessageText
 
@@ -329,19 +330,19 @@ class MatrixBot:
             text = self._strip_mention(text)
 
         room_id = room.room_id
-        return text, room_id, self._id_map.room_to_int(room_id)
+        return text, room_id, event.event_id, self._id_map.room_to_int(room_id)
 
     async def _on_message(self, room: MatrixRoom | object, event: RoomMessageText | object) -> None:
         """Handle incoming room messages."""
         pre = self._preprocess_matrix_text(room, event)
         if pre is None:
             return
-        text, room_id, chat_id = pre
+        text, room_id, event_id, chat_id = pre
 
         self._last_active_room = room_id
 
         if self._config.scene.seen_reaction:
-            await self._set_seen_read_receipt(room_id, event.event_id)
+            await self._set_seen_read_receipt(room_id, event_id)
 
         # Check button match (text-input fallback for reactions)
         button_match = self._button_tracker.match_input(room_id, text)
