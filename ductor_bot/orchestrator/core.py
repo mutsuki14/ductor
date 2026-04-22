@@ -78,6 +78,7 @@ logger = logging.getLogger(__name__)
 
 _TextCallback = Callable[[str], Awaitable[None]]
 _SystemStatusCallback = Callable[[str | None], Awaitable[None]]
+_ReasoningCallback = Callable[[str], Awaitable[None]]
 
 
 @dataclass(slots=True)
@@ -101,6 +102,7 @@ class _MessageDispatch:
     on_text_delta: _TextCallback | None = None
     on_tool_activity: _TextCallback | None = None
     on_system_status: _SystemStatusCallback | None = None
+    on_reasoning_delta: _ReasoningCallback | None = None
 
     def streaming_callbacks(self) -> StreamingCallbacks:
         """Bundle the streaming callbacks into a StreamingCallbacks instance."""
@@ -108,6 +110,7 @@ class _MessageDispatch:
             on_text_delta=self.on_text_delta,
             on_tool_activity=self.on_tool_activity,
             on_system_status=self.on_system_status,
+            on_reasoning_delta=self.on_reasoning_delta,
         )
 
 
@@ -296,7 +299,7 @@ class Orchestrator:
         dispatch = _MessageDispatch(key=key, text=text, cmd=text.strip().lower())
         return await self._handle_message_impl(dispatch)
 
-    async def handle_message_streaming(
+    async def handle_message_streaming(  # noqa: PLR0913
         self,
         key: SessionKey,
         text: str,
@@ -304,6 +307,7 @@ class Orchestrator:
         on_text_delta: _TextCallback | None = None,
         on_tool_activity: _TextCallback | None = None,
         on_system_status: _SystemStatusCallback | None = None,
+        on_reasoning_delta: _ReasoningCallback | None = None,
     ) -> OrchestratorResult:
         """Main entry point with streaming support."""
         dispatch = _MessageDispatch(
@@ -314,6 +318,7 @@ class Orchestrator:
             on_text_delta=on_text_delta,
             on_tool_activity=on_tool_activity,
             on_system_status=on_system_status,
+            on_reasoning_delta=on_reasoning_delta,
         )
         return await self._handle_message_impl(dispatch)
 

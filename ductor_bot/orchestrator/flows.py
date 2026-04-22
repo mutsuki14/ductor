@@ -36,6 +36,7 @@ class StreamingCallbacks:
     on_text_delta: Callable[[str], Awaitable[None]] | None = field(default=None)
     on_tool_activity: Callable[[str], Awaitable[None]] | None = field(default=None)
     on_system_status: Callable[[str | None], Awaitable[None]] | None = field(default=None)
+    on_reasoning_delta: Callable[[str], Awaitable[None]] | None = field(default=None)
 
 
 def _make_timeout_controller(orch: Orchestrator, kind: str) -> TimeoutController | None:
@@ -496,6 +497,7 @@ async def normal_streaming(  # noqa: PLR0911
             on_text_delta=cb.on_text_delta,
             on_tool_activity=cb.on_tool_activity,
             on_system_status=cb.on_system_status,
+            on_reasoning_delta=cb.on_reasoning_delta,
             on_compact_boundary=_on_compact if orch._memory_flusher is not None else None,
         )
         outcome = await _maybe_recover_session(
@@ -738,6 +740,7 @@ async def named_session_streaming(
         on_text_delta=_tagged_text_delta,
         on_tool_activity=cb.on_tool_activity,
         on_system_status=cb.on_system_status,
+        on_reasoning_delta=cb.on_reasoning_delta,
     )
 
     _reg2 = orch._process_registry

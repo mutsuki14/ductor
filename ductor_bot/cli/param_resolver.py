@@ -114,13 +114,15 @@ def resolve_cli_config(
         # Check if model supports reasoning and if effort is valid
         if codex_cache and requested_effort:
             model_info = codex_cache.get_model(model)
-            if (
-                model_info
-                and model_info.supported_efforts
-                and requested_effort in model_info.supported_efforts
-            ):
+            if model_info and model_info.supported_efforts and requested_effort in model_info.supported_efforts:
                 reasoning_effort = requested_effort
-            # Otherwise, fall back to empty (invalid effort or model doesn't support reasoning)
+            elif overrides.reasoning_effort is not None:
+                supported_display = ", ".join(model_info.supported_efforts) if model_info else "none"
+                msg = (
+                    f"Invalid reasoning effort '{requested_effort}' for Codex model {model}. "
+                    f"Supported: {supported_display}"
+                )
+                raise DuctorError(msg)
 
     # 5. Merge CLI parameters: base per-provider bucket first, task overrides second.
     #    argparse-style resolution — last flag wins at the CLI level.

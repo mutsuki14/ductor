@@ -44,6 +44,9 @@
         "max_edit_failures": 3,
         "append_mode": false,
         "sentence_break": true,
+        "show_reasoning_stream": true,
+        "show_tool_progress": true,
+        "show_thinking_indicator": true,
     },
     "docker": {
         "enabled": true,

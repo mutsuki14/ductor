@@ -204,6 +204,7 @@ Main chat:  "Ask codex-agent to write tests for the API"
 - **Multi-transport** — run Telegram and Matrix simultaneously, or pick one
 - **Multi-language** — UI in English, Deutsch, Nederlands, Français, Русский, Español, Português
 - **Real-time streaming** — live message edits (Telegram) or segment-based output (Matrix)
+- **Telegram reasoning + tool UX controls** — optional reasoning stream, live tool progress, and separate thinking indicator controls
 - **Provider switching** — `/model` to change provider/model (never blocks, even during active processes)
 - **Persistent memory** — plain Markdown files that survive across sessions
 - **Memory maintenance** — pre-compaction flush, optional reflection cadence, and LLM-driven compaction
