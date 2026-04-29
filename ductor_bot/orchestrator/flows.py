@@ -144,6 +144,7 @@ async def _prepare_normal(
         provider_override=req_provider,
         chat_id=key.chat_id,
         topic_id=key.topic_id,
+        transport=key.transport,
         resume_session=None if is_new else session.session_id,
         timeout_seconds=timeout_secs,
         timeout_controller=_make_timeout_controller(orch, "normal"),
@@ -238,6 +239,8 @@ _INVALID_SESSION_MARKERS = (
     # for resumed sessions whose cached session_id has expired. Keeping all
     # known phrasings here lets foreground + inter-agent paths share detection.
     "no conversation found",
+    "no rollout found",
+    "thread/resume failed",
 )
 
 
@@ -698,6 +701,7 @@ async def named_session_flow(
         provider_override=ns.provider,
         chat_id=key.chat_id,
         topic_id=key.topic_id,
+        transport=key.transport,
         process_label=f"ns:{session_name}",
         resume_session=ns.session_id or None,
         timeout_seconds=resolve_timeout(orch._config, "normal"),
@@ -744,6 +748,7 @@ async def named_session_streaming(
         provider_override=ns.provider,
         chat_id=key.chat_id,
         topic_id=key.topic_id,
+        transport=key.transport,
         process_label=f"ns:{session_name}",
         resume_session=ns.session_id or None,
         timeout_seconds=resolve_timeout(orch._config, "normal"),
@@ -842,6 +847,7 @@ async def heartbeat_flow(
         provider_override=req_provider,
         chat_id=key.chat_id,
         topic_id=key.topic_id,
+        transport=key.transport,
         resume_session=session.session_id,
         timeout_seconds=resolve_timeout(orch._config, "normal"),
         timeout_controller=_make_timeout_controller(orch, "normal"),

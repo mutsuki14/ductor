@@ -1468,6 +1468,13 @@ class TelegramBot:
             from_interagent_result,
         )
 
+        if result.transport and result.transport != "tg":
+            logger.debug(
+                "Skipping async interagent result for transport=%s in Telegram handler",
+                result.transport,
+            )
+            return
+
         # Prefer the originating chat context carried by the result;
         # fall back to the sender agent's default DM.
         chat_id = result.chat_id or (
@@ -1492,7 +1499,12 @@ class TelegramBot:
             )
 
         await self._bus.submit(
-            from_interagent_result(result, chat_id, injection_prompt=injection_prompt)
+            from_interagent_result(
+                result,
+                chat_id,
+                injection_prompt=injection_prompt,
+                transport="tg",
+            )
         )
 
     async def on_task_result(self, result: TaskResult) -> None:

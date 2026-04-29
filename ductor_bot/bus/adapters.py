@@ -186,6 +186,7 @@ def from_interagent_result(
     chat_id: int,
     *,
     injection_prompt: str = "",
+    transport: str | None = None,
 ) -> Envelope:
     """Convert an async inter-agent result.
 
@@ -201,6 +202,7 @@ def from_interagent_result(
     skipped and only the raw ``result_text`` is delivered.
     """
     delivery_chat_id = result.chat_id or chat_id
+    delivery_transport = transport or getattr(result, "transport", "") or "tg"
     meta = {
         "task_id": result.task_id,
         "sender": result.sender,
@@ -208,6 +210,7 @@ def from_interagent_result(
         "error": result.error,
         "provider_switch_notice": result.provider_switch_notice,
         "original_message": result.original_message,
+        "transport": delivery_transport,
     }
 
     if not result.success:
@@ -215,6 +218,7 @@ def from_interagent_result(
             origin=Origin.INTERAGENT,
             chat_id=delivery_chat_id,
             topic_id=result.topic_id,
+            transport=delivery_transport,
             prompt_preview=result.message_preview,
             result_text=result.result_text,
             status="error",
@@ -230,6 +234,7 @@ def from_interagent_result(
         origin=Origin.INTERAGENT,
         chat_id=delivery_chat_id,
         topic_id=result.topic_id,
+        transport=delivery_transport,
         prompt=injection_prompt,
         prompt_preview=result.message_preview,
         result_text=result.result_text,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import AsyncGenerator
 from pathlib import Path
@@ -37,6 +38,11 @@ if TYPE_CHECKING:
     from ductor_bot.cli.timeout_controller import TimeoutController
 
 logger = logging.getLogger(__name__)
+
+_CODEX_STDIN_NOTICE_PREFIXES = (
+    "Reading prompt from stdin",
+    "Reading additional input from stdin",
+)
 
 
 class _StreamState:
@@ -110,8 +116,7 @@ class CodexCLI(BaseCLI):
             cmd.append("--json")
         cmd += self._sandbox_flags()
         cmd += ["--", session_id]
-        if not _IS_WINDOWS:
-            cmd.append(final_prompt)
+        cmd.append("-" if _IS_WINDOWS else final_prompt)
         return cmd
 
     def _build_command(
@@ -147,11 +152,11 @@ class CodexCLI(BaseCLI):
         if cfg.cli_parameters:
             cmd.extend(cfg.cli_parameters)
 
+        cmd.append("--")
         # On Windows, .CMD wrappers mangle arguments with special characters.
-        # The prompt is passed via stdin instead (see send / send_streaming).
-        if not _IS_WINDOWS:
-            cmd.append("--")
-            cmd.append(final_prompt)
+        # Use "-" so Codex reads stdin without emitting the "Reading prompt..."
+        # notice as a stdout prelude before JSONL.
+        cmd.append("-" if _IS_WINDOWS else final_prompt)
         return cmd
 
     def _docker_wrap(self, cmd: list[str]) -> tuple[list[str], str | None]:
@@ -241,13 +246,27 @@ class CodexCLI(BaseCLI):
         raw = stdout.decode(errors="replace").strip()
         if not raw:
             logger.error("Codex returned empty output (exit=%s)", returncode)
-            return CLIResponse(result="", is_error=True, returncode=returncode, stderr=stderr_text)
+            return CLIResponse(
+                result=_strip_codex_stdin_notices(stderr_text),
+                is_error=True,
+                returncode=returncode,
+                stderr=stderr_text,
+            )
 
         is_error = returncode != 0
         result_text, thread_id, usage = parse_codex_jsonl(raw)
+        cleaned_stdout = _strip_codex_stdin_notices(raw)
+        cleaned_stderr = _strip_codex_stdin_notices(stderr_text)
+        parsed_error = _extract_codex_error_detail(raw)
+        if result_text:
+            result = result_text
+        elif is_error:
+            result = parsed_error or cleaned_stderr or cleaned_stdout
+        else:
+            result = raw
         response = CLIResponse(
             session_id=thread_id,
-            result=result_text or raw,
+            result=result,
             is_error=is_error or not result_text,
             returncode=returncode,
             stderr=stderr_text,
@@ -285,10 +304,11 @@ def _codex_final_result(
     4. ``"(no output)"`` — fallback.
     """
     stderr_text = result.stderr_bytes.decode(errors="replace")[:2000] if result.stderr_bytes else ""
+    stderr_detail = _strip_codex_stdin_notices(stderr_text)
 
     if result.process.returncode != 0:
         error_detail = (
-            last_error_message or "\n".join(accumulated_text) or stderr_text or "(no output)"
+            last_error_message or "\n".join(accumulated_text) or stderr_detail or "(no output)"
         )
         logger.error(
             "Codex stream exited with code %d: %s",
@@ -309,6 +329,44 @@ def _codex_final_result(
         is_error=False,
         returncode=result.process.returncode,
     )
+
+
+def _is_codex_stdin_notice(line: str) -> bool:
+    """Return True for Codex's informational stdin prelude lines."""
+    stripped = line.strip()
+    return any(stripped.startswith(prefix) for prefix in _CODEX_STDIN_NOTICE_PREFIXES)
+
+
+def _strip_codex_stdin_notices(text: str) -> str:
+    """Remove stdin notice lines from Codex stdout/stderr text."""
+    return "\n".join(line for line in text.splitlines() if not _is_codex_stdin_notice(line)).strip()
+
+
+def _extract_codex_error_detail(raw: str) -> str:
+    """Extract a structured Codex error message from JSONL stdout."""
+    detail = ""
+    for raw_line in raw.splitlines():
+        stripped = raw_line.strip()
+        if not stripped or _is_codex_stdin_notice(stripped):
+            continue
+        try:
+            data = json.loads(stripped)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(data, dict):
+            continue
+        if data.get("type") == "turn.failed":
+            error = data.get("error", {})
+            if isinstance(error, dict):
+                message = error.get("message")
+                if isinstance(message, str):
+                    detail = message.strip()
+        item = data.get("item")
+        if isinstance(item, dict) and item.get("type") == "error":
+            message = item.get("message")
+            if isinstance(message, str) and message.strip():
+                detail = message.strip()
+    return detail
 
 
 def _log_cmd(cmd: list[str], *, streaming: bool = False) -> None:

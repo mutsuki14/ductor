@@ -183,6 +183,19 @@ def test_from_interagent_success_with_prompt_enables_injection() -> None:
     assert env.lock_mode == LockMode.REQUIRED
 
 
+def test_from_interagent_matrix_transport() -> None:
+    """Matrix callers must produce mx envelopes for session injection and delivery."""
+    prompt = "[ASYNC INTER-AGENT RESPONSE from 'dev' (task t1)]\nresult\n[END]"
+    env = from_interagent_result(
+        _FakeInterAgentResult(),
+        chat_id=100,
+        injection_prompt=prompt,
+        transport="mx",
+    )
+    assert env.transport == "mx"
+    assert env.metadata["transport"] == "mx"
+
+
 def test_from_interagent_error() -> None:
     env = from_interagent_result(_FakeInterAgentResult(success=False, error="timeout"), chat_id=100)
     assert env.status == "error"

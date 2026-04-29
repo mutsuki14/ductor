@@ -777,6 +777,17 @@ def test_is_invalid_session_case_insensitive() -> None:
     assert _is_invalid_session(response) is True
 
 
+def test_is_invalid_session_matches_codex_resume_rollout_error() -> None:
+    """Codex can report stale resume state as a missing rollout/thread resume failure."""
+    from ductor_bot.orchestrator.flows import _is_invalid_session
+
+    response = AgentResponse(
+        result="Error: thread/resume failed: no rollout found for thread id abc",
+        is_error=True,
+    )
+    assert _is_invalid_session(response) is True
+
+
 def test_finish_normal_substitutes_empty_success_with_fallback() -> None:
     """#84: successful turn with empty result -- e.g. agent spent the turn
     writing to memory -- must yield a non-empty visible status message so

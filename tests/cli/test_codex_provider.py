@@ -198,6 +198,26 @@ class TestBuildCommand:
         cmd = cli._build_command("hello")
         assert "--model" not in cmd
 
+    def test_windows_exec_uses_dash_prompt_marker(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Windows sends prompts via stdin without Codex's stdout stdin notice."""
+        monkeypatch.setattr("ductor_bot.cli.codex_provider._IS_WINDOWS", True)
+        cli = _make_cli(monkeypatch)
+
+        cmd = cli._build_command("hello")
+
+        assert cmd[-2:] == ["--", "-"]
+        assert "hello" not in cmd
+
+    def test_windows_resume_uses_dash_prompt_marker(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Resume on Windows must explicitly read the prompt from stdin."""
+        monkeypatch.setattr("ductor_bot.cli.codex_provider._IS_WINDOWS", True)
+        cli = _make_cli(monkeypatch)
+
+        cmd = cli._build_command("hello", resume_session="thread-abc")
+
+        assert cmd[-3:] == ["--", "thread-abc", "-"]
+        assert "hello" not in cmd
+
     @pytest.mark.parametrize(
         ("effort", "should_have_flag"),
         [
@@ -290,8 +310,51 @@ class TestParseOutput:
     def test_empty_stdout_with_stderr(self) -> None:
         resp = CodexCLI._parse_output(b"", b"some error", 1)
         assert resp.is_error is True
+        assert resp.result == "some error"
         assert resp.stderr == "some error"
         assert resp.returncode == 1
+
+    def test_empty_stdout_strips_stdin_notice_from_stderr(self) -> None:
+        resp = CodexCLI._parse_output(
+            b"",
+            b"Reading prompt from stdin...\nError: thread/resume failed: no rollout found",
+            1,
+        )
+        assert resp.is_error is True
+        assert resp.result == "Error: thread/resume failed: no rollout found"
+        assert "Reading prompt" not in resp.result
+
+    def test_stdin_notice_stdout_prefers_stderr_error(self) -> None:
+        """Windows stdin notices must not hide the real stderr failure."""
+        resp = CodexCLI._parse_output(
+            b"Reading prompt from stdin...\n",
+            b"Error: thread/resume failed: no rollout found for thread id abc",
+            1,
+        )
+        assert resp.is_error is True
+        assert "no rollout found" in resp.result
+        assert "Reading prompt" not in resp.result
+
+    def test_stdin_notice_stdout_only_is_removed(self) -> None:
+        resp = CodexCLI._parse_output(b"Reading prompt from stdin...\n", b"", 1)
+        assert resp.is_error is True
+        assert resp.result == ""
+
+    def test_non_streaming_turn_failed_error_beats_stdin_notice(self) -> None:
+        raw = "\n".join(
+            [
+                "Reading prompt from stdin...",
+                json.dumps(
+                    {
+                        "type": "turn.failed",
+                        "error": {"message": "You've hit your usage limit."},
+                    }
+                ),
+            ]
+        )
+        resp = CodexCLI._parse_output(raw.encode(), b"thread not found", 1)
+        assert resp.is_error is True
+        assert resp.result == "You've hit your usage limit."
 
     def test_successful_jsonl_output(self) -> None:
         lines = "\n".join(

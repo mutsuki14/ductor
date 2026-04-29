@@ -1200,6 +1200,13 @@ class MatrixBot:
             from_interagent_result,
         )
 
+        if result.transport and result.transport != "mx":
+            logger.debug(
+                "Skipping async interagent result for transport=%s in Matrix handler",
+                result.transport,
+            )
+            return
+
         chat_id = self._default_chat_id()
         if not chat_id:
             logger.warning(
@@ -1217,7 +1224,12 @@ class MatrixBot:
         )
 
         await self._bus.submit(
-            from_interagent_result(result, chat_id, injection_prompt=injection_prompt)
+            from_interagent_result(
+                result,
+                chat_id,
+                injection_prompt=injection_prompt,
+                transport="mx",
+            )
         )
 
     async def on_task_result(self, result: TaskResult) -> None:

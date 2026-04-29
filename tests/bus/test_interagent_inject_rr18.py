@@ -13,15 +13,12 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from unittest.mock import AsyncMock, MagicMock
-
-import pytest
+from unittest.mock import AsyncMock
 
 from ductor_bot.bus.adapters import from_interagent_result
 from ductor_bot.bus.bus import MessageBus
 from ductor_bot.bus.envelope import LockMode, Origin
 from ductor_bot.bus.lock_pool import LockPool
-
 
 # -- Shared fixtures -----------------------------------------------------------
 
@@ -77,7 +74,7 @@ def _mock_transport(name: str = "tg") -> AsyncMock:
 # -- Pattern 1: idle — injection fires immediately ----------------------------
 
 
-async def test_idle_injection_fires(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_idle_injection_fires() -> None:
     """Pattern 1: Main idle, ia-async result → inject_prompt called once."""
     bus = MessageBus()
     injector = AsyncMock()
@@ -130,7 +127,7 @@ async def test_busy_main_injection_not_dropped() -> None:
     inject_called = asyncio.Event()
     injector = AsyncMock()
 
-    async def _inject(prompt: str, chat_id: int, label: str, **_: object) -> str:
+    async def _inject(_prompt: str, _chat_id: int, _label: str, **_: object) -> str:
         inject_called.set()
         return "injected while busy"
 
@@ -194,6 +191,29 @@ async def test_no_injection_prompt_skips_injection() -> None:
     assert env.result_text == result.result_text  # raw text unchanged
 
 
+async def test_matrix_transport_reaches_injector_and_delivery() -> None:
+    """Matrix async results must inject into mx session and deliver to mx transport."""
+    bus = MessageBus()
+    injector = AsyncMock()
+    injector.inject_prompt = AsyncMock(return_value="processed for matrix")
+    mx = _mock_transport("mx")
+    tg = _mock_transport("tg")
+    bus.set_injector(injector)
+    bus.register_transport(tg)
+    bus.register_transport(mx)
+
+    result = _FakeIAResult(chat_id=555)
+    prompt = _build_injection_prompt(result)
+    env = from_interagent_result(result, chat_id=100, injection_prompt=prompt, transport="mx")
+
+    await bus.submit(env)
+
+    injector.inject_prompt.assert_awaited_once()
+    assert injector.inject_prompt.call_args.kwargs["transport"] == "mx"
+    mx.deliver.assert_awaited_once_with(env)
+    tg.deliver.assert_not_awaited()
+
+
 # -- Pattern 4: multiple concurrent tasks, each injected independently ---------
 
 
@@ -206,7 +226,7 @@ async def test_multiple_concurrent_tasks_all_injected() -> None:
 
     injected: list[str] = []
 
-    async def _inject(prompt: str, chat_id: int, label: str, **_: object) -> str:
+    async def _inject(prompt: str, _chat_id: int, _label: str, **_: object) -> str:
         await asyncio.sleep(0)  # yield to allow interleaving
         injected.append(prompt[:30])
         return f"processed:{prompt[:20]}"
@@ -221,7 +241,7 @@ async def test_multiple_concurrent_tasks_all_injected() -> None:
     prompts = [_build_injection_prompt(r) for r in results]
     envs = [
         from_interagent_result(r, chat_id=8452932024, injection_prompt=p)
-        for r, p in zip(results, prompts)
+        for r, p in zip(results, prompts, strict=True)
     ]
 
     # Submit all three concurrently
