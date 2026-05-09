@@ -11,6 +11,7 @@ from rich.console import Console
 
 from ductor_bot.cli.auth import AuthResult, AuthStatus
 from ductor_bot.cli.init_wizard import (
+    _ask_language,
     _check_clis,
     _WizardConfig,
     _write_config,
@@ -52,6 +53,7 @@ def test_write_config_ignores_corrupt_existing_json(tmp_path: Path) -> None:
     data = json.loads(paths.config_path.read_text(encoding="utf-8"))
     assert data["telegram_token"] == "123456789:abcdefghijklmnopqrstuvwxyzABCDE"
     assert data["allowed_user_ids"] == [1234]
+    assert data["language"] == "zh-CN"
     assert data["user_timezone"] == "UTC"
     assert data["gemini_api_key"] == "null"
 
@@ -79,11 +81,25 @@ def test_write_config_normalizes_existing_null_gemini_api_key(tmp_path: Path) ->
     assert data["gemini_api_key"] == "null"
 
 
+def test_ask_language_applies_selected_language() -> None:
+    from ductor_bot.i18n import get_language, init
+
+    init("zh-CN")
+    try:
+        with patch("ductor_bot.cli.init_wizard.questionary.select") as mock_select:
+            mock_select.return_value.ask.return_value = "en"
+            assert _ask_language() == "en"
+            assert get_language() == "en"
+    finally:
+        init("en")
+
+
 def test_run_onboarding_returns_false_when_service_install_fails(tmp_path: Path) -> None:
     paths = _make_paths(tmp_path)
 
     with (
         patch("ductor_bot.cli.init_wizard._show_banner"),
+        patch("ductor_bot.cli.init_wizard._ask_language", return_value="zh-CN"),
         patch("ductor_bot.cli.init_wizard._check_clis"),
         patch("ductor_bot.cli.init_wizard._show_disclaimer"),
         patch("ductor_bot.cli.init_wizard._ask_transport", return_value="telegram"),
@@ -104,6 +120,7 @@ def test_run_onboarding_returns_true_when_service_install_succeeds(tmp_path: Pat
 
     with (
         patch("ductor_bot.cli.init_wizard._show_banner"),
+        patch("ductor_bot.cli.init_wizard._ask_language", return_value="zh-CN"),
         patch("ductor_bot.cli.init_wizard._check_clis"),
         patch("ductor_bot.cli.init_wizard._show_disclaimer"),
         patch("ductor_bot.cli.init_wizard._ask_transport", return_value="telegram"),

@@ -45,6 +45,7 @@ from ductor_bot.config import (
     AgentConfig,
     deep_merge_config,
 )
+from ductor_bot.i18n import init as init_i18n
 from ductor_bot.i18n import t_rich
 from ductor_bot.infra.json_store import atomic_json_save
 from ductor_bot.workspace.init import init_workspace
@@ -78,6 +79,21 @@ def _is_configured() -> bool:
         if not checker(data):
             return False
     return True
+
+
+def _init_cli_i18n_from_existing_config() -> None:
+    """Initialize CLI translations from config without creating any files."""
+    paths = resolve_paths()
+    if not paths.config_path.exists():
+        return
+    try:
+        data = json.loads(paths.config_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return
+
+    language = data.get("language")
+    if isinstance(language, str):
+        init_i18n(language)
 
 
 def _is_configured_telegram(data: dict[str, object]) -> bool:
@@ -342,6 +358,7 @@ def main() -> None:
 
     # Resolve first matching command
     action = next((_COMMANDS[c] for c in commands if c in _COMMANDS), None)
+    _init_cli_i18n_from_existing_config()
 
     dispatch: dict[str, _Action] = {
         "help": _print_usage,

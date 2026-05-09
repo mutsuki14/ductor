@@ -26,7 +26,8 @@ from ductor_bot.cli.auth import (
     check_gemini_auth,
 )
 from ductor_bot.config import DEFAULT_EMPTY_GEMINI_API_KEY, AgentConfig, deep_merge_config
-from ductor_bot.i18n import t_rich
+from ductor_bot.i18n import LANGUAGES, t_rich
+from ductor_bot.i18n import init as init_i18n
 from ductor_bot.workspace.init import init_workspace
 from ductor_bot.workspace.paths import resolve_paths
 
@@ -347,6 +348,25 @@ def _ask_matrix_allowed_users(console: Console) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
+def _ask_language() -> str:
+    """Prompt for the UI language before the rest of onboarding."""
+    default_language = AgentConfig().language
+    init_i18n(default_language)
+    choices = [
+        questionary.Choice(title=f"{name} ({code})", value=code)
+        for code, name in LANGUAGES.items()
+    ]
+    selected: str | None = questionary.select(
+        t_rich("wizard.language.prompt"),
+        choices=choices,
+        default=default_language,
+    ).ask()
+    if selected is None:
+        _abort()
+    init_i18n(selected)
+    return str(selected)
+
+
 def _ask_docker(console: Console) -> bool:
     """Detect Docker and ask whether to enable sandboxing."""
     docker_found = shutil.which("docker") is not None
@@ -557,6 +577,7 @@ class _WizardConfig(TypedDict, total=False):
     """Wizard values passed to ``_write_config``."""
 
     transport: str
+    language: str
     user_timezone: str
     docker_enabled: bool
     docker_extras: list[str] | None
@@ -619,6 +640,7 @@ def _write_config(cfg: _WizardConfig) -> Path:
     if merged.get("gemini_api_key") is None:
         merged["gemini_api_key"] = DEFAULT_EMPTY_GEMINI_API_KEY
 
+    merged["language"] = cfg.get("language", AgentConfig().language)
     merged["transport"] = cfg.get("transport", "telegram")
     merged["user_timezone"] = cfg.get("user_timezone", "UTC")
     raw_docker = merged.get("docker")
@@ -651,6 +673,9 @@ def run_onboarding() -> bool:
     """Run onboarding and return True only when service install succeeded."""
     console = Console()
     console.print()
+    language = _ask_language()
+    console.print()
+
     _show_banner(console)
 
     _check_clis(console)
@@ -699,6 +724,7 @@ def run_onboarding() -> bool:
     config_path = _write_config(
         _WizardConfig(
             transport=transport,
+            language=language,
             user_timezone=timezone,
             docker_enabled=docker_enabled,
             docker_extras=docker_extras,

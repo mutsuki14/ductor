@@ -595,6 +595,38 @@ class TestUninstall:
 
 
 class TestMainDispatch:
+    def test_cli_commands_initialize_i18n_from_existing_config(self, tmp_path: Path) -> None:
+        from ductor_bot import __main__ as main_mod
+        from ductor_bot.i18n import get_language, init
+
+        paths = _make_paths(tmp_path)
+        _write_config(
+            paths,
+            {
+                "language": "zh-CN",
+                "telegram_token": "123:ABC",
+                "allowed_user_ids": [1],
+            },
+        )
+        observed: dict[str, str] = {}
+
+        def fake_usage() -> None:
+            observed["language"] = get_language()
+
+        init("en")
+        try:
+            with (
+                patch("sys.argv", ["ductor", "help"]),
+                patch("ductor_bot.__main__.resolve_paths", return_value=paths),
+                patch("ductor_bot.__main__._print_usage", side_effect=fake_usage) as mock_usage,
+            ):
+                main_mod.main()
+        finally:
+            init("en")
+
+        mock_usage.assert_called_once()
+        assert observed["language"] == "zh-CN"
+
     def test_help_command(self) -> None:
         from ductor_bot.__main__ import main
 
