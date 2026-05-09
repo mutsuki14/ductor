@@ -34,6 +34,8 @@ def test_agent_config_defaults() -> None:
     assert cfg.cli_timeout == 1800.0
     assert cfg.permission_mode == "bypassPermissions"
     assert cfg.gemini_api_key is None
+    assert cfg.language == "zh-CN"
+    assert cfg.user_timezone == "Asia/Shanghai"
     assert cfg.telegram_token == ""
     assert cfg.allowed_user_ids == []
 

@@ -133,6 +133,7 @@ body = """\
 Tu zona horaria se usa para la programación de cron, horas de silencio del heartbeat
 y reinicios diarios de sesión."""
 prompt = "Selecciona tu zona horaria:"
+manual_choice = "-> Introducir manualmente"
 manual_prompt = "Introduce zona horaria IANA (p. ej. Europe/Madrid):"
 error = "[red]Zona horaria desconocida: {tz}[/red]"
 

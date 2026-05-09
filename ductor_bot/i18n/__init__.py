@@ -20,7 +20,7 @@ from ductor_bot.i18n.loader import TranslationStore
 logger = logging.getLogger(__name__)
 
 _store: TranslationStore | None = None
-DEFAULT_LANGUAGE = "zh-CN"
+DEFAULT_LANGUAGE = "en"
 
 # Available languages: directory name -> display name (native).
 LANGUAGES: dict[str, str] = {
@@ -37,9 +37,11 @@ LANGUAGES: dict[str, str] = {
 
 _LANGUAGE_ALIASES: dict[str, str] = {
     "zh": "zh-CN",
+    "zh-cn": "zh-CN",
     "zh_cn": "zh-CN",
     "zh-CN": "zh-CN",
     "zh_CN": "zh-CN",
+    "zh-hans": "zh-CN",
     "zh-Hans": "zh-CN",
     "zh_Hans": "zh-CN",
     "cn": "zh-CN",
@@ -48,7 +50,8 @@ _LANGUAGE_ALIASES: dict[str, str] = {
 
 def normalize_language(language: str) -> str:
     """Normalize common Simplified Chinese aliases to the packaged locale code."""
-    return _LANGUAGE_ALIASES.get(language, language)
+    trimmed = language.strip()
+    return _LANGUAGE_ALIASES.get(trimmed, trimmed)
 
 
 def init(language: str = DEFAULT_LANGUAGE) -> None:
@@ -66,7 +69,8 @@ def init(language: str = DEFAULT_LANGUAGE) -> None:
 
 def _get_store() -> TranslationStore:
     if _store is None:
-        # Auto-init with the localized default if nobody called init() yet.
+        # Auto-init with English if nobody called init() yet. Runtime entrypoints
+        # re-init with config.language before user-facing bot output.
         init(DEFAULT_LANGUAGE)
         assert _store is not None
     return _store

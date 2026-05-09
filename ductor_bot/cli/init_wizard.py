@@ -75,7 +75,7 @@ _TIMEZONES: list[str] = [
     "UTC",
 ]
 
-_MANUAL_TZ_OPTION = "-> 手动输入"
+_MANUAL_TZ_OPTION = "__manual_timezone__"
 
 
 def _abort() -> NoReturn:
@@ -481,7 +481,13 @@ def _ask_timezone(console: Console) -> str:
         ),
     )
 
-    choices = [*_TIMEZONES, _MANUAL_TZ_OPTION]
+    choices = [
+        *_TIMEZONES,
+        questionary.Choice(
+            title=t_rich("wizard.timezone.manual_choice"),
+            value=_MANUAL_TZ_OPTION,
+        ),
+    ]
     selected: str | None = questionary.select(
         t_rich("wizard.timezone.prompt"), choices=choices
     ).ask()

@@ -115,6 +115,11 @@ def test_init_simplified_chinese_alias() -> None:
     assert get_language() == "zh-CN"
 
 
+def test_init_simplified_chinese_lowercase_alias() -> None:
+    init("zh-cn")
+    assert get_language() == "zh-CN"
+
+
 def test_t_returns_string() -> None:
     init("en")
     result = t("session.error_header")

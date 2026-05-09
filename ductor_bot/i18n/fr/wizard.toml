@@ -133,6 +133,7 @@ body = """\
 Ton fuseau horaire est utilisé pour la planification cron, les heures calmes du heartbeat
 et les réinitialisations quotidiennes de session."""
 prompt = "Choisis ton fuseau horaire :"
+manual_choice = "-> Saisir manuellement"
 manual_prompt = "Entre le fuseau horaire IANA (par ex. Europe/Paris) :"
 error = "[red]Fuseau horaire inconnu : {tz}[/red]"
 

@@ -133,6 +133,7 @@ body = """\
 Deine Zeitzone wird für Cron-Planung, Heartbeat-Ruhezeiten
 und tägliche Session-Resets verwendet."""
 prompt = "Wähle deine Zeitzone:"
+manual_choice = "-> Manuell eingeben"
 manual_prompt = "IANA-Zeitzone eingeben (z.B. Europe/Berlin):"
 error = "[red]Unbekannte Zeitzone: {tz}[/red]"
 

@@ -133,6 +133,7 @@ body = """\
 Your timezone is used for cron scheduling, heartbeat quiet hours,
 and daily session resets."""
 prompt = "Select your timezone:"
+manual_choice = "-> Enter manually"
 manual_prompt = "Enter IANA timezone (e.g. Europe/Berlin):"
 error = "[red]Unknown timezone: {tz}[/red]"
 

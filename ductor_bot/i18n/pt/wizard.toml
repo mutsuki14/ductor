@@ -133,6 +133,7 @@ body = """\
 Seu fuso horário é usado para agendamento de cron, horários de silêncio do heartbeat
 e resets diários de sessão."""
 prompt = "Selecione seu fuso horário:"
+manual_choice = "-> Digitar manualmente"
 manual_prompt = "Digite o fuso horário IANA (ex.: America/Sao_Paulo):"
 error = "[red]Fuso horário desconhecido: {tz}[/red]"
 

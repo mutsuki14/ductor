@@ -133,6 +133,7 @@ body = """\
 Zona waktu Anda digunakan untuk penjadwalan cron, jam tenang heartbeat,
 dan reset sesi harian."""
 prompt = "Pilih zona waktu Anda:"
+manual_choice = "-> Masukkan manual"
 manual_prompt = "Masukkan zona waktu IANA (mis. Asia/Jakarta):"
 error = "[red]Zona waktu tidak dikenal: {tz}[/red]"
 

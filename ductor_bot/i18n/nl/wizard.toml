@@ -133,6 +133,7 @@ body = """\
 Je tijdzone wordt gebruikt voor cron-planning, heartbeat-rusttijden
 en dagelijkse sessie-resets."""
 prompt = "Selecteer je tijdzone:"
+manual_choice = "-> Handmatig invoeren"
 manual_prompt = "Voer IANA-tijdzone in (bijv. Europe/Amsterdam):"
 error = "[red]Onbekende tijdzone: {tz}[/red]"
 

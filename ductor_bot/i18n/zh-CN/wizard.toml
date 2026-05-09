@@ -133,6 +133,7 @@ body = """\
 你的时区会用于定时任务、心跳免打扰时间
 和每日会话重置。"""
 prompt = "选择你的时区："
+manual_choice = "-> 手动输入"
 manual_prompt = "输入 IANA 时区（例如 Asia/Shanghai）："
 error = "[red]未知时区：{tz}[/red]"
 
