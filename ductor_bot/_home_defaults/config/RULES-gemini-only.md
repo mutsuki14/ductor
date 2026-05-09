@@ -28,7 +28,7 @@ Edit only when the user asks for behavior changes.
 
 ### Time and Scheduling
 
-- `user_timezone`: IANA timezone string (for example `Europe/Berlin`)
+- `user_timezone`: IANA timezone string (for example `Asia/Shanghai`)
 - `daily_reset_hour`: session reset boundary (in `user_timezone`)
 - `heartbeat.quiet_start`, `heartbeat.quiet_end`: quiet hours (in `user_timezone`)
 - `cleanup.check_hour`: daily cleanup hour (in `user_timezone`, not UTC)
@@ -88,7 +88,7 @@ Parameters are inserted before the `--` separator in commands.
 
 ### Language
 
-- `language`: UI language for bot messages — `en`, `de`, `nl`, `fr`, `ru`, `es`, `pt`
+- `language`: UI language for bot messages — `zh-CN`, `en`, `de`, `nl`, `fr`, `ru`, `es`, `pt`
 - Hot-reloadable: change without restart.
 
 ### Image Processing

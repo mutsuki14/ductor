@@ -72,8 +72,8 @@ Changes take effect on the next CLI invocation (mtime-based cache invalidation, 
 | `session_age_warning_hours` | `int` | `12` | Adds `/new` reminder after threshold (every 10 messages) |
 | `daily_reset_hour` | `int` | `4` | Daily reset boundary hour in `user_timezone` |
 | `daily_reset_enabled` | `bool` | `false` | Enables daily session reset checks |
-| `user_timezone` | `str` | `""` | IANA timezone used by cron/heartbeat/cleanup/session reset |
-| `language` | `str` | `"en"` | UI language for onboarding, commands, status text, and chat-facing system messages |
+| `user_timezone` | `str` | `"Asia/Shanghai"` | IANA timezone used by cron/heartbeat/cleanup/session reset |
+| `language` | `str` | `"zh-CN"` | UI language for onboarding, commands, status text, and chat-facing system messages |
 | `max_budget_usd` | `float \| None` | `None` | Passed to Claude CLI |
 | `max_turns` | `int \| None` | `None` | Passed to Claude CLI |
 | `max_session_messages` | `int \| None` | `None` | Session rollover limit |

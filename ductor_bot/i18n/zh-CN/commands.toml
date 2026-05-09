@@ -1,0 +1,26 @@
+# Simplified Chinese bot command descriptions (Telegram mobile clients show these inline).
+
+[bot]
+new = "开始新对话"
+stop = "停止当前并清空队列"
+interrupt = "中断当前，保留队列"
+model = "查看或切换模型"
+status = "会话信息"
+memory = "查看主记忆"
+session = "后台会话"
+tasks = "后台任务"
+cron = "管理定时任务"
+agent_commands = "多智能体系统"
+showfiles = "浏览文件"
+info = "文档、链接和关于"
+help = "显示全部命令"
+diagnose = "系统诊断"
+upgrade = "检查更新"
+restart = "重启机器人"
+
+[multiagent]
+agents = "列出全部智能体"
+agent_start = "启动子智能体"
+agent_stop = "停止子智能体"
+agent_restart = "重启子智能体"
+stop_all = "终止全部进程"

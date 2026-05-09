@@ -46,6 +46,8 @@ _TOKEN_PATTERN = re.compile(r"^\d{8,}:[A-Za-z0-9_-]{30,}$")
 _MATRIX_USER_RE = re.compile(r"^@[a-z0-9._=/+-]+:[a-z0-9.-]+$", re.IGNORECASE)
 
 _TIMEZONES: list[str] = [
+    # China
+    "Asia/Shanghai",
     # Europe
     "Europe/Berlin",
     "Europe/London",
@@ -64,7 +66,6 @@ _TIMEZONES: list[str] = [
     "America/Toronto",
     # Asia & Middle East
     "Asia/Tokyo",
-    "Asia/Shanghai",
     "Asia/Kolkata",
     "Asia/Dubai",
     "Asia/Singapore",
@@ -74,7 +75,7 @@ _TIMEZONES: list[str] = [
     "UTC",
 ]
 
-_MANUAL_TZ_OPTION = "-> Enter manually"
+_MANUAL_TZ_OPTION = "-> 手动输入"
 
 
 def _abort() -> NoReturn:

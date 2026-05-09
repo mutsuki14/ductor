@@ -425,8 +425,8 @@ class AgentConfig(BaseModel):
     scene: SceneConfig = Field(default_factory=SceneConfig)
     notifications: NotificationsConfig = Field(default_factory=NotificationsConfig)
     transcription: TranscriptionConfig = Field(default_factory=TranscriptionConfig)
-    user_timezone: str = ""
-    language: str = "en"
+    user_timezone: str = "Asia/Shanghai"
+    language: str = "zh-CN"
     update_check: bool = True
     group_mention_only: bool = False
     interagent_port: int = 8799

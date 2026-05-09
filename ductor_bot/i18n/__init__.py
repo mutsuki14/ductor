@@ -20,9 +20,11 @@ from ductor_bot.i18n.loader import TranslationStore
 logger = logging.getLogger(__name__)
 
 _store: TranslationStore | None = None
+DEFAULT_LANGUAGE = "zh-CN"
 
 # Available languages: directory name -> display name (native).
 LANGUAGES: dict[str, str] = {
+    "zh-CN": "简体中文",
     "en": "English",
     "de": "Deutsch",
     "nl": "Nederlands",
@@ -33,21 +35,39 @@ LANGUAGES: dict[str, str] = {
     "ru": "Русский",
 }
 
+_LANGUAGE_ALIASES: dict[str, str] = {
+    "zh": "zh-CN",
+    "zh_cn": "zh-CN",
+    "zh-CN": "zh-CN",
+    "zh_CN": "zh-CN",
+    "zh-Hans": "zh-CN",
+    "zh_Hans": "zh-CN",
+    "cn": "zh-CN",
+}
 
-def init(language: str = "en") -> None:
+
+def normalize_language(language: str) -> str:
+    """Normalize common Simplified Chinese aliases to the packaged locale code."""
+    return _LANGUAGE_ALIASES.get(language, language)
+
+
+def init(language: str = DEFAULT_LANGUAGE) -> None:
     """Initialize the translation store. Call once at startup."""
     global _store  # noqa: PLW0603
-    lang = language if language in LANGUAGES else "en"
-    if lang != language:
-        logger.warning("Unknown language '%s', falling back to 'en'", language)
+    requested = normalize_language(language)
+    if requested in LANGUAGES:
+        lang = requested
+    else:
+        lang = DEFAULT_LANGUAGE
+        logger.warning("Unknown language '%s', falling back to '%s'", language, lang)
     _store = TranslationStore(lang)
     logger.info("i18n initialized: language=%s", lang)
 
 
 def _get_store() -> TranslationStore:
     if _store is None:
-        # Auto-init with English if nobody called init() yet.
-        init("en")
+        # Auto-init with the localized default if nobody called init() yet.
+        init(DEFAULT_LANGUAGE)
         assert _store is not None
     return _store
 

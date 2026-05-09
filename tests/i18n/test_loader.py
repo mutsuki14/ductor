@@ -7,7 +7,17 @@ from pathlib import Path
 
 import pytest
 
-from ductor_bot.i18n import LANGUAGES, get_language, get_store, init, t, t_cmd, t_plural, t_rich
+from ductor_bot.i18n import (
+    DEFAULT_LANGUAGE,
+    LANGUAGES,
+    get_language,
+    get_store,
+    init,
+    t,
+    t_cmd,
+    t_plural,
+    t_rich,
+)
 from ductor_bot.i18n.loader import TranslationStore, _flatten, _load_toml
 
 # -- _flatten ------------------------------------------------------------------
@@ -87,7 +97,7 @@ def test_store_missing_placeholder_graceful() -> None:
 
 def test_init_default() -> None:
     init()
-    assert get_language() == "en"
+    assert get_language() == DEFAULT_LANGUAGE
 
 
 def test_init_english() -> None:
@@ -95,9 +105,14 @@ def test_init_english() -> None:
     assert get_language() == "en"
 
 
-def test_init_unknown_falls_back_to_english() -> None:
+def test_init_unknown_falls_back_to_default_language() -> None:
     init("xx_unknown")
-    assert get_language() == "en"
+    assert get_language() == DEFAULT_LANGUAGE
+
+
+def test_init_simplified_chinese_alias() -> None:
+    init("zh")
+    assert get_language() == "zh-CN"
 
 
 def test_t_returns_string() -> None:
@@ -201,6 +216,10 @@ def test_chat_placeholders_are_valid(en_store: TranslationStore) -> None:
 
 def test_languages_has_en() -> None:
     assert "en" in LANGUAGES
+
+
+def test_languages_has_simplified_chinese() -> None:
+    assert "zh-CN" in LANGUAGES
 
 
 def test_all_language_dirs_exist() -> None:

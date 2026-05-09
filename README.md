@@ -192,7 +192,7 @@ Main chat:  "Ask codex-agent to write tests for the API"
 ## Features
 
 - **Multi-transport** — run Telegram and Matrix simultaneously, or pick one
-- **Multi-language** — UI in English, Deutsch, Nederlands, Français, Русский, Español, Português
+- **Multi-language** — UI in 简体中文, English, Deutsch, Nederlands, Français, Русский, Español, Português
 - **Real-time streaming** — live message edits (Telegram) or segment-based output (Matrix)
 - **Telegram reasoning + tool UX controls** — optional reasoning stream, live tool progress, and separate thinking indicator controls
 - **Provider switching** — `/model` to change provider/model (never blocks, even during active processes)
@@ -289,7 +289,8 @@ ductor's UI (commands, status messages, onboarding) is available in multiple lan
 
 | Code | Language |
 |---|---|
-| `en` | English (default) |
+| `zh-CN` | 简体中文 (default) |
+| `en` | English |
 | `de` | Deutsch |
 | `nl` | Nederlands |
 | `fr` | Français |
@@ -300,7 +301,7 @@ ductor's UI (commands, status messages, onboarding) is available in multiple lan
 Set the language in `config.json`:
 
 ```json
-{"language": "de"}
+{"language": "zh-CN"}
 ```
 
 This is **hot-reloadable** — change the language without restarting the bot.
